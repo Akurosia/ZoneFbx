@@ -242,6 +242,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FBXCSharp.h" />
@@ -272,5 +273,12 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\fbxsdk.2020.0.1.2\build\native\fbxsdk.targets" Condition="Exists('..\packages\fbxsdk.2020.0.1.2\build\native\fbxsdk.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Dieses Projekt verweist auf mindestens ein NuGet-Paket, das auf diesem Computer fehlt. Verwenden Sie die Wiederherstellung von NuGet-Paketen, um die fehlenden Dateien herunterzuladen. Weitere Informationen finden Sie unter "http://go.microsoft.com/fwlink/?LinkID=322105". Die fehlende Datei ist "{0}".</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\fbxsdk.2020.0.1.2\build\native\fbxsdk.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\fbxsdk.2020.0.1.2\build\native\fbxsdk.targets'))" />
+  </Target>
 </Project>
