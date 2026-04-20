@@ -1,21 +1,16 @@
 ﻿using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Lumina.Excel.Sheets;
 using CliWrap;
 using System.IO;
+using System.Configuration;
 using Action = System.Action;
+using System.Collections.Specialized;
+using System.Text;
 
 namespace ZoneFbx.GUI
 {
@@ -24,6 +19,8 @@ namespace ZoneFbx.GUI
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        private readonly Configuration Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        private readonly Config ExportConfig;
         private Lumina.GameData? data;
 
         // bindings for window
@@ -38,25 +35,25 @@ namespace ZoneFbx.GUI
             }
         }
 
-        private string _gamePath = "";
         public string GamePath
         {
-            get => _gamePath;
+            get => ExportConfig.GamePath;
             set
             {
-                _gamePath = value;
+                ExportConfig.GamePath = value;
                 OnPropertyChanged(nameof(GamePath));
+                Config.Save();
             }
         }
 
-        private string _outputPath = "";
         public string OutputPath
         {
-            get => _outputPath;
+            get => ExportConfig.OutputPath;
             set
             {
-                _outputPath = value;
+                ExportConfig.OutputPath = value;
                 OnPropertyChanged(nameof(OutputPath));
+                Config.Save();
             }
         }
 
@@ -74,7 +71,7 @@ namespace ZoneFbx.GUI
         // levels
         public class ComboBoxItem
         {
-            public string Value { get; set; }
+            public string Value { get; set; } 
             public string DisplayValue { get; set; }
             public ComboBoxItem(string value, string displayValue)
             {
@@ -95,9 +92,14 @@ namespace ZoneFbx.GUI
             {
                 var match = Levels.FirstOrDefault(i => i.DisplayValue == value);
                 if (match != null)
+                {
                     _level = match.Value;
-                else
+                    LevelComboBox.SelectedItem = null;
+                } else
+                {
                     _level = value;
+                    LevelComboBox.SelectedItem = null;
+                }
 
                 OnPropertyChanged(nameof(Level));
                 FilteredLevels.Refresh();
@@ -105,58 +107,91 @@ namespace ZoneFbx.GUI
         }
 
         // flags
-        private bool _enableLightshaft = false;
         public bool EnableLightshaft
         {
-            get => _enableLightshaft;
+            get => ExportConfig.EnableLightshaft;
             set
             {
-                _enableLightshaft = value;
+                ExportConfig.EnableLightshaft = value;
                 OnPropertyChanged(nameof(EnableLightshaft));
+                Config.Save();
             }
         }
 
-        private bool _enableLighting = false;
         public bool EnableLighting
         {
-            get => _enableLighting;
+            get => ExportConfig.EnableLighting;
             set
             {
-                _enableLighting = value;
+                ExportConfig.EnableLighting = value;
                 OnPropertyChanged(nameof(EnableLighting));
+                Config.Save();
             }
         }
 
-        private bool _enableFestival = false;
         public bool EnableFestival
         {
-            get => _enableFestival;
+            get => ExportConfig.EnableFestival;
             set
             {
-                _enableFestival = value;
+                ExportConfig.EnableFestival = value;
                 OnPropertyChanged(nameof(EnableFestival));
+                Config.Save();
             }
         }
 
-        private bool _enableJsonExport = false;
         public bool EnableJsonExport
         {
-            get => _enableJsonExport;
+            get => ExportConfig.EnableJsonExport;
             set
             {
-                _enableJsonExport = value;
+                ExportConfig.EnableJsonExport = value;
                 OnPropertyChanged(nameof(EnableJsonExport));
+                Config.Save();
             }
         }
 
-        private bool _disableBaking = false;
-        public bool DisableBaking
+        public bool EnableBlend
         {
-            get => _disableBaking;
+            get => ExportConfig.EnableBlend;
             set
             {
-                _disableBaking = value;
+                ExportConfig.EnableBlend = value;
+                OnPropertyChanged(nameof(EnableBlend));
+                Config.Save();
+            }
+        }
+
+        public bool EnableMTMap
+        {
+            get => ExportConfig.EnableMTMap;
+            set
+            {
+                ExportConfig.EnableMTMap = value;
+                OnPropertyChanged(nameof(EnableMTMap));
+                Config.Save();
+            }
+        }
+
+        public bool EnableCollision
+        {
+            get => ExportConfig.EnableCollision;
+            set
+            {
+                ExportConfig.EnableCollision = value;
+                OnPropertyChanged(nameof(EnableCollision));
+                Config.Save();
+            }
+        }
+
+        public bool DisableBaking
+        {
+            get => ExportConfig.DisableBaking;
+            set
+            {
+                ExportConfig.DisableBaking = value;
                 OnPropertyChanged(nameof(DisableBaking));
+                Config.Save();
             }
         }
 
@@ -164,9 +199,20 @@ namespace ZoneFbx.GUI
         private void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+        private ConfigWindow configWindow = null!;
+
         public MainWindow()
         {
+            if (Config.GetSection("ExportConfig") is null)
+            {
+                Config.Sections.Add("ExportConfig", new Config());
+                Config.Save();
+            }
+            ExportConfig = (Config)Config.GetSection("ExportConfig");
+
+
             InitializeComponent();
+
             FilteredLevels = new ListCollectionView(Levels);
             FilteredLevels.Filter = LevelFilter;
             DataContext = this;
@@ -175,6 +221,12 @@ namespace ZoneFbx.GUI
             {
                 GamePath = defaultDir;
             }
+        }
+
+        private void OpenConfigWindow(object sender, RoutedEventArgs e)
+        {
+            configWindow = new(Config, ExportConfig);
+            configWindow.ShowDialog();
         }
 
         private async void TryResolvingLumina()
@@ -273,19 +325,58 @@ namespace ZoneFbx.GUI
                     EnableFestival ? "f" : "",
                     DisableBaking ? "b" : "",
                     EnableJsonExport ? "j" : "",
-                    EnableLighting ? "i" : ""
+                    EnableLighting ? "i" : "",
+                    EnableBlend ? "s" : "",
+                    EnableMTMap ? "m" : "",
+                    EnableCollision ? "c" : "",
                     }
                 ]);
 
             if (argFlags == "-") argFlags = "";
 
+            // there's probably a better way to do this...
+            var argVars = new List<string>();
+            
+            if (!string.IsNullOrEmpty(ExportConfig.SpecularFactor))
+            {
+                argVars.Add("--specular");
+                argVars.Add(ExportConfig.SpecularFactor);
+            }
+
+            if (!string.IsNullOrEmpty(ExportConfig.NormalFactor))
+            {
+                argVars.Add("--normal");
+                argVars.Add(ExportConfig.NormalFactor);
+            }
+
+            if (!string.IsNullOrEmpty(ExportConfig.LightIntensityFactor))
+            {
+                argVars.Add("--lightIntensity");
+                argVars.Add(ExportConfig.LightIntensityFactor);
+            }
+
+            var extraArgs = string.Join(" ", [argFlags, string.Join(" ", argVars)]);
+
             ConsoleString = "";
-            ConsoleString += $"ZoneFbx \"{GamePath}\" {argLevel} \"{argOutput}\\\" {argFlags}\n";
+            ConsoleString += $"ZoneFbx \"{GamePath}\" {argLevel} \"{argOutput}\\\" {extraArgs}\n";
+
+            var finalArgs = new List<string>{ GamePath, argLevel, argOutput};
+
+            if (!string.IsNullOrEmpty(argFlags))
+            {
+                finalArgs.Add(argFlags);
+            }
+            if (argVars.Count > 0)
+            {
+                finalArgs.AddRange(argVars);
+            }
+
             try
             {
-                var result = await CliWrap.Cli.Wrap("ZoneFbx")
-                    .WithArguments([GamePath, argLevel, argOutput, argFlags])
+                var result = await Cli.Wrap("ZoneFbxCLI/ZoneFbx")
+                    .WithArguments(finalArgs)
                     .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
+                    .WithStandardErrorPipe(PipeTarget.ToDelegate(AppendConsole))
                     .ExecuteAsync();
                 ConsoleString += $"ZoneFbx was {(!result.IsSuccess ? "un" : "")}able to successfully exit.";
             } catch (Exception ex)

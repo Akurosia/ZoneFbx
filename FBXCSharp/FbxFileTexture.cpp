@@ -1,12 +1,14 @@
 #include "pch.h"
 #include <fbxsdk.h>
+#include "FBXCSharp.h"
+#include "ContextManager.h"
 
 extern "C" {
-    __declspec(dllexport) FbxFileTexture* FbxFileTexture_Create(FbxScene* scene, const char* name) {
-        return FbxFileTexture::Create(scene, name);
+    FBXCSHARP_API FbxFileTexture* FbxFileTexture_Create(ContextManager* contextManager, const char* name) {
+        return FbxFileTexture::Create(contextManager->pScene, name);
     }
 
-    __declspec(dllexport) void FbxFileTexture_SetStuff(FbxFileTexture* texture, const char* pathname) {
+    FBXCSHARP_API void FbxFileTexture_SetStuff(FbxFileTexture* texture, const char* pathname) {
         texture->SetFileName(pathname);
         texture->SetMappingType(FbxTexture::eUV);
         texture->SetTextureUse(FbxTexture::eStandard);

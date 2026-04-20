@@ -1,21 +1,24 @@
 #include "pch.h"
 #include <fbxsdk.h>
+#include "FBXCSharp.h"
+#include "ContextManager.h"
+
 
 extern "C" {
-    __declspec(dllexport) FbxSurfacePhong* FbxSurfacePhong_Create(FbxScene* scene, const char* name) {
-        return FbxSurfacePhong::Create(scene, name);
+    FBXCSHARP_API FbxSurfacePhong* FbxSurfacePhong_Create(ContextManager* contextManager, const char* name) {
+        return FbxSurfacePhong::Create(contextManager->pScene, name);
     }
 
-    __declspec(dllexport) void FbxSurfacePhong_SetFactor(FbxSurfacePhong* surfacePhong) {
+    FBXCSHARP_API void FbxSurfacePhong_SetFactor(FbxSurfacePhong* surfacePhong, double specularFactor, double bumpFactor) {
         surfacePhong->AmbientFactor.Set(1.);
         surfacePhong->DiffuseFactor.Set(1.);
-        surfacePhong->SpecularFactor.Set(0.3);
+        surfacePhong->SpecularFactor.Set(specularFactor);
         //surfacePhong->EmissiveFactor.Set(0.3);  // doesn't seem to do anything?
-        surfacePhong->BumpFactor.Set(0.2);  // global normal strength, unsure if mtrl files contain this info
+        surfacePhong->BumpFactor.Set(bumpFactor);  // global normal strength, unsure if mtrl files contain this info
         surfacePhong->ShadingModel.Set("Phong");
     }
 
-    __declspec(dllexport) void FbxSurfacePhong_ConnectSrcObject(FbxSurfacePhong* outsurface, FbxFileTexture* texture, int branch) {
+    FBXCSHARP_API void FbxSurfacePhong_ConnectSrcObject(FbxSurfacePhong* outsurface, FbxFileTexture* texture, int branch) {
         switch (branch) {
         case 0:
             outsurface->Diffuse.ConnectSrcObject(texture); break;
@@ -26,5 +29,10 @@ extern "C" {
         case 3:
             outsurface->Emissive.ConnectSrcObject(texture); break;
         }
+    }
+
+    FBXCSHARP_API bool FbxSurfacePhong_PropertyExists(FbxSurfacePhong* outsurface, const char* propertyName) {
+        auto property = outsurface->FindProperty(propertyName);
+        return property.IsValid();
     }
 }

@@ -1,15 +1,9 @@
-﻿using Lumina.Data.Files;
-using Lumina.Models.Materials;
+﻿using Lumina.Data.Parsing.Layer;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading.Tasks;
+using ZoneFbx.Fbx;
 using static Lumina.Data.Parsing.Layer.LayerCommon;
 
 namespace ZoneFbx
@@ -28,12 +22,12 @@ namespace ZoneFbx
             return resPath;
         }
 
-        public static string get_texture_folder(string out_path, string zone_code)
+        public static string GetTextureFolder(string out_path, string zone_code)
         {
             return out_path + "textures" + Path.DirectorySeparatorChar;
         }
 
-        public static string get_texture_path(string out_path, string zone_code, string texture_path, string material_path, Vector3? v = null, string type = "")
+        public static string GetTexturePath(string out_path, string zone_code, string texture_path, string material_path, Vector3? v = null, string suffix = "")
         {
             string tex_abs_path;
 
@@ -42,15 +36,14 @@ namespace ZoneFbx
                 tex_abs_path = texture_path.Substring(texture_path.LastIndexOf('/') + 1).Replace(".tex", ".png");
             } else
             {
-                if (type.Length == 0) type = texture_path.Substring(texture_path.LastIndexOf(".tex") - 2, 2);
-                tex_abs_path = material_path.Substring(material_path.LastIndexOf('/') + 1).Replace(".mtrl", $"{type}.png");
+                tex_abs_path = $"{Path.GetFileName(material_path)}_{Path.GetFileNameWithoutExtension(texture_path)}{suffix}.png";
             }
 
-            tex_abs_path = get_texture_folder(out_path, zone_code) + tex_abs_path;
+            tex_abs_path = GetTextureFolder(out_path, zone_code) + tex_abs_path;
             return tex_abs_path;
         }
 
-        public static double degrees(double radians)
+        public static double Degrees(double radians)
         {
             return 180 / Math.PI * radians;
         }
@@ -80,16 +73,30 @@ namespace ZoneFbx
             }
         }
 
-        public static void save_json(string filename, Layer[] layers, string output_path)
+        public static void SaveJson(string filename, LayerCommon.Layer[] layers, string output_path)
         {
-            var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
             var jsonFolder = Path.Combine(output_path, "json");
             Directory.CreateDirectory(jsonFolder);
             var filepath = Path.Combine(jsonFolder, $"{filename}.json");
-            if (!File.Exists(filepath))
-            {
-                File.WriteAllText(Path.Combine(jsonFolder, $"{filename}.json"), layerJson);
-            }
+            if (File.Exists(filepath)) return;
+            var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
+            File.WriteAllText(Path.Combine(jsonFolder, $"{filename}.json"), layerJson);
         }
+
+        public static void InitChildNode(InstanceObject obj, IntPtr node)
+        {
+            Node.SetStuff(node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
+            if (obj.AssetType == LayerEntryType.LayLight)
+            {
+                // rotate light nodes -90 degrees on the X axis since the light nodes point towards its negative Y axis
+                Node.SetStuff(node, Util.Degrees(obj.Transform.Rotation.X) - 90, Util.Degrees(obj.Transform.Rotation.Y), Util.Degrees(obj.Transform.Rotation.Z), 1);
+            } else
+            {
+                Node.SetStuff(node, Util.Degrees(obj.Transform.Rotation.X), Util.Degrees(obj.Transform.Rotation.Y), Util.Degrees(obj.Transform.Rotation.Z), 1);
+            }
+            Node.SetStuff(node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
+        }
+
+        public static string TrimLevelPath(string zonePath) => zonePath.Substring(0, zonePath.LastIndexOf("/"));
     }
 }
