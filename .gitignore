@@ -6,3 +6,4 @@ Debug/
 .vscode/
 prebuilt/*
 packages/
+dist/
