@@ -23,6 +23,7 @@
             public double specularFactor = 0.3;
             public double normalFactor = 0.2;
             public double lightIntensityFactor = 10000;
+            public int variantId = 1;
 
             public Mode mode = Mode.Default;
         }

@@ -97,7 +97,7 @@
                         </ItemsPanelTemplate>
                     </ComboBox.ItemsPanel>
                 </ComboBox>
-            <Label>Level</Label>
+            <Label>Level / model path</Label>
             <LineBreak/>
             <Grid Width="600">
                 <Grid.RowDefinitions>
@@ -125,7 +125,7 @@
             </Grid>
             <LineBreak/>
             <LineBreak/>
-            <Button Content="Extract map" Click="ExportMap" Width="120" Height="36">
+            <Button Content="Extract asset" Click="ExportMap" Width="120" Height="36">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="IsEnabled" Value="True" />

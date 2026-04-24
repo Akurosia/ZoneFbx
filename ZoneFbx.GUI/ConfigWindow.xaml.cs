@@ -56,6 +56,17 @@ namespace ZoneFbx.GUI
             }
         }
 
+        public string _modelVariant;
+        public string ModelVariant
+        {
+            get => _modelVariant;
+            set
+            {
+                _modelVariant = value;
+                OnPropertyChanged(nameof(ModelVariant));
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -67,6 +78,7 @@ namespace ZoneFbx.GUI
             _specularFactor = ExportConfig.SpecularFactor;
             _normalFactor = ExportConfig.NormalFactor;
             _lightIntensityFactor = ExportConfig.LightIntensityFactor;
+            _modelVariant = ExportConfig.ModelVariant;
 
 
             InitializeComponent();
@@ -76,6 +88,12 @@ namespace ZoneFbx.GUI
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
         {
             Regex regex = new Regex("[^0-9.]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void VariantValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
 
@@ -103,9 +121,18 @@ namespace ZoneFbx.GUI
                 return;
             }
 
+            valid = int.TryParse(ModelVariant, out var modelVariant);
+            valid = valid && modelVariant >= 1;
+            if (!valid)
+            {
+                MessageBox.Show("Invalid model variant.");
+                return;
+            }
+
             ExportConfig.SpecularFactor = SpecularFactor;
             ExportConfig.NormalFactor = NormalFactor;
             ExportConfig.LightIntensityFactor = LightIntensityFactor;
+            ExportConfig.ModelVariant = ModelVariant;
             Config.Save();
 
             Close();

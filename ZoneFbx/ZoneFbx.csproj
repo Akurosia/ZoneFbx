@@ -13,7 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lumina" Version="7.3.0" />
     <PackageReference Include="Lumina.Excel" Version="7.4.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.1" />
@@ -21,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Lumina\src\Lumina\Lumina.csproj" />
     <ProjectReference Include="..\FBXCSharp\FBXCSharp.vcxproj" Condition="'$(Configuration)' != 'GithubRelease'" />
     <None Include="$(SolutionDir)$(Platform)\$(Configuration)\FBXCSharp.dll" Condition="'$(Configuration)' != 'GithubRelease'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -29,5 +29,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="CopyPatchedLumina" AfterTargets="Build">
+    <Copy
+      SourceFiles="$(MSBuildProjectDirectory)\..\Lumina\src\Lumina\bin\$(Platform)\$(Configuration)\net8.0\Lumina.dll"
+      DestinationFolder="$(OutputPath)"
+      SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

@@ -102,5 +102,12 @@ namespace ZoneFbx.GUI
             get => (string)this["lightIntensityFactor"];
             set { this["lightIntensityFactor"] = value.ToString(); }
         }
+
+        [ConfigurationProperty("modelVariant", DefaultValue = "1")]
+        public string ModelVariant
+        {
+            get => (string)this["modelVariant"];
+            set { this["modelVariant"] = value; }
+        }
     }
 }

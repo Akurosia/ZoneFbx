@@ -355,6 +355,12 @@ namespace ZoneFbx.GUI
                 argVars.Add(ExportConfig.LightIntensityFactor);
             }
 
+            if (!string.IsNullOrEmpty(ExportConfig.ModelVariant))
+            {
+                argVars.Add("--variant");
+                argVars.Add(ExportConfig.ModelVariant);
+            }
+
             var extraArgs = string.Join(" ", [argFlags, string.Join(" ", argVars)]);
 
             ConsoleString = "";

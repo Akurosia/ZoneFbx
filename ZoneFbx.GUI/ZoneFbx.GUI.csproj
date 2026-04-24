@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.10.0" />
-    <PackageReference Include="Lumina" Version="7.3.0" />
     <PackageReference Include="Lumina.Excel" Version="7.4.3" />
   </ItemGroup>
 
@@ -22,7 +21,23 @@
       <ZoneFbxFiles Include="$(SolutionDir)ZoneFbx\bin\$(Platform)\$(Configuration)\$(TargetFramework)\**\*.*" />
     </ItemGroup>
     <Message Importance="High" Text="Copying ZoneFbx output files to $(OutputPath)ZoneFbxCLI..." />
-    <Copy SourceFiles="@(ZoneFbxFiles)" DestinationFolder="$(OutputPath)ZoneFbxCLI\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ZoneFbxFiles)" DestinationFolder="$(OutputPath)ZoneFbxCLI\%(RecursiveDir)" SkipUnchangedFiles="false" />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZoneFbx\ZoneFbx.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Lumina\src\Lumina\Lumina.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyPatchedLumina" AfterTargets="Build">
+    <Copy
+      SourceFiles="$(MSBuildProjectDirectory)\..\Lumina\src\Lumina\bin\$(Platform)\$(Configuration)\net8.0\Lumina.dll"
+      DestinationFolder="$(OutputPath)"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="$(MSBuildProjectDirectory)\..\Lumina\src\Lumina\bin\$(Platform)\$(Configuration)\net8.0\Lumina.dll"
+      DestinationFolder="$(OutputPath)ZoneFbxCLI"
+      SkipUnchangedFiles="false" />
   </Target>
 
 </Project>

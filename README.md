@@ -9,6 +9,7 @@ A large amount of the logic is kept 1:1 with the original. In other words, I hav
 
 ## Features
 - FFXIV zone export to .FBX with textures
+- Direct `.mdl` export, including equipment/chara models
 - Light sources
 - Extracting blended textures and mapping to materials
 - Collision model exports
@@ -77,7 +78,7 @@ The GUI is a wrapper for the CLI that makes it easier to input in the correct ar
 From top to bottom:
 1. Path to the `sqpack` folder
 2. Desired output directory
-3. Level/map that you want to extract (Options are populated upon selecting a valid `sqpack` folder)
+3. Level/map or direct model path that you want to extract. Level options are populated upon selecting a valid `sqpack` folder, but you can also type a path like `chara/equipment/e0001/model/c0101e0001_top.mdl`
 4. Miscellaneous flags and variables, described in the following section
 5. Execute button, disabled until the level/map text box has a value
 
@@ -95,6 +96,17 @@ From top to bottom:
 - `--specular`        Sets the specular factor. Range: [0, 1]
 - `--normal`          Sets the normal factor. Range: [0, 1]
 - `--lightIntensity`  Sets the light intensity factor. Range: [0, Int32.Max]
+- `--variant`         Sets the material variant for direct model exports. Range: [1, Int32.Max]
+
+### Direct model exports
+If the second argument ends with `.mdl`, ZoneFbx treats it as a direct model export instead of a map export.
+
+This is useful for equipment, accessories, weapons, and other `chara` assets. Example:
+```
+zonefbx.exe "C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\sqpack" chara/equipment/e0001/model/c0101e0001_top.mdl "C:\Users\Username\Desktop\" --variant 1
+```
+
+The `--variant` value is used for resolving material paths such as `v0001`, `v0002`, etc.
 
 https://streamable.com/tjg45n
 

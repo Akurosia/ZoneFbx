@@ -11,12 +11,12 @@ namespace ZoneFbx.Processor
 
         public void ResetCache() => meshCache.Clear();
 
-        public Model? LoadModel(string modelPath)
+        public Model? LoadModel(string modelPath, int variantId = 1)
         {
             var modelFile = data.GetFile<MdlFile>(modelPath);
             if (modelFile == null) return null;
 
-            var model = new Model(modelFile);
+            var model = new Model(modelFile, variantId: variantId);
             updateMaterials(model, modelPath);
             return model;
         }
@@ -32,6 +32,18 @@ namespace ZoneFbx.Processor
                 catch (ArgumentOutOfRangeException e) when (e.ParamName == "usage")
                 {
                     Console.WriteLine($"Material {material.MaterialPath} for {modelPath} contains an unsupported texture usage.");
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Exporting model geometry with the supported material data that could be read.");
+                }
+                catch (IndexOutOfRangeException e)
+                {
+                    Console.WriteLine($"Material {material.MaterialPath} for {modelPath} contains texture data ZoneFbx could not fully decode.");
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Exporting model geometry with the supported material data that could be read.");
+                }
+                catch (KeyNotFoundException e)
+                {
+                    Console.WriteLine($"Material {material.MaterialPath} for {modelPath} references material data that could not be resolved.");
                     Console.WriteLine(e.Message);
                     Console.WriteLine("Exporting model geometry with the supported material data that could be read.");
                 }

@@ -8,6 +8,10 @@
         zonefbx.exe "C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\sqpack" 
         ffxiv/fst_f1/fld/f1f1/level/f1f1 "C:\Users\Username\Desktop\" [flags] [variables]
 
+        To export a direct model path such as equipment, pass the .mdl path as the second argument:
+        zonefbx.exe "C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\sqpack"
+        chara/equipment/e0001/model/c0101e0001_top.mdl "C:\Users\Username\Desktop\" --variant 1
+
         Example with flags and variables; flags: light sources, blend; variables: specular=0.2, lightIntensity=20000
         zonefbx.exe "C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\sqpack" 
         ffxiv/fst_f1/fld/f1f1/level/f1f1 "C:\Users\Username\Desktop\" -si --specular 0.2 --lightIntensity 20000
@@ -25,6 +29,7 @@
         --specular          Number; Sets the specular factor (Default: 0.3)
         --normal            Number; Sets the normal factor (Default: 0.2)
         --lightIntensity    Number; Sets the light intensity factor (Default: 10000)
+        --variant           Integer; Sets the material variant for direct model exports (Default: 1)
         """;
 
         static void Main(string[] args)
@@ -35,7 +40,13 @@
 
             if (args.Length >= 4 && !ProcessArgs(args, ref options)) Environment.Exit(1);
 
-            var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);
+            if (IsDirectModelPath(args[1]))
+            {
+                var modelExporter = new ModelExporter(args[0], args[1], args[2], options);
+            } else
+            {
+                var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);
+            }
         }
 
         private static bool SanitizeInput(string[] args)
@@ -60,16 +71,9 @@
                 return false;
             }
 
-            if (args[1].StartsWith("bg/"))
+            if (!IsDirectModelPath(args[1]) && args[1].StartsWith("bg/"))
             {
                 ColorMessage("Error: Level path must not begin with bg/.\n");
-                Console.WriteLine(usage);
-                return false;
-            }
-
-            if (!Directory.Exists(args[2]))
-            {
-                ColorMessage("Error: Export folder must exist.\n");
                 Console.WriteLine(usage);
                 return false;
             }
@@ -77,6 +81,17 @@
             if (!args[2].EndsWith("\\"))
             {
                 ColorMessage("Error: Export folder must have a trailing slash.\n");
+                Console.WriteLine(usage);
+                return false;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(args[2]);
+            }
+            catch (Exception e)
+            {
+                ColorMessage($"Error: Export folder could not be created. {e.Message}\n");
                 Console.WriteLine(usage);
                 return false;
             }
@@ -178,6 +193,14 @@
                     }
                     options.lightIntensityFactor = doubleValue;
                     break;
+                case "variant":
+                    if (!int.TryParse(value, out var intValue) || intValue < 1)
+                    {
+                        ColorMessage($"Invalid value for {arg}: {value}");
+                        return false;
+                    }
+                    options.variantId = intValue;
+                    break;
                 default:
                     ColorMessage($"Unknown argument \"{arg}\", ignoring...", ConsoleColor.Yellow);
                     Console.WriteLine(usage);
@@ -192,6 +215,11 @@
             Console.ForegroundColor = color;
             Console.WriteLine(error);
             Console.ResetColor();
+        }
+
+        private static bool IsDirectModelPath(string assetPath)
+        {
+            return assetPath.EndsWith(".mdl", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
