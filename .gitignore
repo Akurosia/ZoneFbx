@@ -5,3 +5,4 @@ Debug/
 */obj/
 .vscode/
 prebuilt/*
+packages/
